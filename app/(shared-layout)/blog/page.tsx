@@ -1,19 +1,19 @@
 import {buttonVariants} from "@/components/ui/button"
 import {Card, CardContent, CardFooter} from "@/components/ui/card"
-import { Skeleton } from '@/components/ui/skeleton'
+import {Skeleton} from "@/components/ui/skeleton"
 import {api} from "@/convex/_generated/api"
 import {fetchQuery} from "convex/nextjs"
-import { Metadata } from 'next'
-import { cacheLife, cacheTag } from 'next/cache'
+import {Metadata} from "next"
+import {cacheLife, cacheTag} from "next/cache"
 import Image from "next/image"
 import Link from "next/link"
-import { connection } from 'next/server'
-import { Suspense } from 'react'
+import {connection} from "next/server"
+import {Suspense} from "react"
 
 // export const dynamic = 'force-static'
 // export const revalidate = 30
 
-export const  metadata:Metadata = {
+export const metadata: Metadata = {
 	title: "Assaf's Blog",
 	description: "Assaf's blog",
 }
@@ -27,15 +27,15 @@ export default function BlogPage() {
 					Insights thought and trends from our team!
 				</p>
 			</div>
-			<Suspense
-				fallback={<SkeletonLoadingUI />}>
-			<LoadBlogList /></Suspense>
+			<Suspense fallback={<SkeletonLoadingUI />}>
+				<LoadBlogList />
+			</Suspense>
 		</div>
 	)
 }
 
 async function LoadBlogList() {
-	"use cache"
+	await connection()
 	// cacheLife('hours')
 	// cacheTag('blog')
 
@@ -84,11 +84,11 @@ function SkeletonLoadingUI() {
 		<div className="grid gap-6 md:grid-cols-3 lg:grid-cols-3">
 			{[...Array(6)].map((_, i) => (
 				<div key={i} className="flex flex-col space-y-3">
-					<Skeleton className='h-48 w-full rounded-xl' />
+					<Skeleton className="h-48 w-full rounded-xl" />
 					<div className="space-y-2 flex flex-col">
-						<Skeleton className = 'h-6 w-3/4'></Skeleton>
-						<Skeleton className = 'h-4 w-full'></Skeleton>
-						<Skeleton className = 'h-4 w-2/4'></Skeleton>
+						<Skeleton className="h-6 w-3/4"></Skeleton>
+						<Skeleton className="h-4 w-full"></Skeleton>
+						<Skeleton className="h-4 w-2/4"></Skeleton>
 					</div>
 				</div>
 			))}
