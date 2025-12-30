@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Next.js 16 – 8 Hour Deep Dive Course</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+        :root {
+            --bg: #05060a;
+            --bg-alt: #0c1018;
+            --bg-soft: #111623;
+            --accent: #4f8cff;
+            --accent-soft: rgba(79, 140, 255, 0.14);
+            --accent-strong: #7aa7ff;
+            --text: #e5e9f5;
+            --text-soft: #a5b0d1;
+            --border-soft: #1c2234;
+            --chip-bg: #161b2a;
+            --danger: #ff6b81;
+            --shadow-soft: 0 18px 45px rgba(0, 0, 0, 0.65);
+            --radius-lg: 18px;
+            --radius-md: 11px;
+            --radius-pill: 999px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+                "Segoe UI", sans-serif;
+            background: radial-gradient(circle at top left, #151a28 0, #05060a 55%);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 32px 16px 40px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .page {
+            width: 100%;
+            max-width: 1080px;
+        }
+
+        .hero {
+            background: radial-gradient(circle at 0 0, #202b41 0, #0a0e19 40%, #05060a 100%);
+            border-radius: 24px;
+            padding: 28px 26px 22px;
+            border: 1px solid rgba(96, 165, 250, 0.22);
+            box-shadow: var(--shadow-soft);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: "";
+            position: absolute;
+            inset: -40%;
+            background:
+                radial-gradient(circle at 10% 0, rgba(79, 140, 255, 0.23) 0, transparent 50%),
+                radial-gradient(circle at 85% 15%, rgba(236, 72, 153, 0.22) 0, transparent 55%);
+            opacity: 0.8;
+            pointer-events: none;
+        }
+
+        .hero-inner {
+            position: relative;
+            display: grid;
+            grid-template-columns: minmax(0, 2.4fr) minmax(0, 2fr);
+            gap: 18px;
+            align-items: center;
+        }
+
+        @media (max-width: 860px) {
+            .hero-inner {
+                grid-template-columns: minmax(0, 1fr);
+            }
+        }
+
+        .hero-main {
+            padding-right: 8px;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 11px;
+            border-radius: var(--radius-pill);
+            border: 1px solid rgba(148, 163, 184, 0.45);
+            background: radial-gradient(circle at top left, #1b2235 0, #070b13 70%);
+            color: var(--text-soft);
+            font-size: 11px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .eyebrow-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 999px;
+            background: radial-gradient(circle, #4ade80 0, #16a34a 55%, #052e16 100%);
+            box-shadow: 0 0 0 6px rgba(34, 197, 94, 0.18);
+        }
+
+        .hero-title {
+            margin-top: 14px;
+            font-size: 32px;
+            line-height: 1.15;
+            font-weight: 650;
+            letter-spacing: 0.01em;
+        }
+
+        .hero-title span {
+            background: linear-gradient(120deg, #60a5fa, #a855f7, #f97316);
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+
+        .hero-subtitle {
+            margin-top: 10px;
+            font-size: 14px;
+            color: var(--text-soft);
+            max-width: 540px;
+        }
+
+        .hero-meta-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 14px;
+            margin-top: 16px;
+            font-size: 12px;
+            color: var(--text-soft);
+        }
+
+        .hero-meta-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 11px;
+            border-radius: var(--radius-pill);
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(148, 163, 184, 0.35);
+        }
+
+        .pill-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+            background: #38bdf8;
+        }
+
+        .hero-actions {
+            margin-top: 18px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .btn-primary {
+            border: none;
+            outline: none;
+            padding: 9px 18px;
+            border-radius: var(--radius-pill);
+            background: radial-gradient(circle at 0 0, #60a5fa 0, #2563eb 45%, #1d4ed8 100%);
+            color: #f9fafb;
+            font-size: 13px;
+            letter-spacing: 0.03em;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            box-shadow: 0 12px 28px rgba(37, 99, 235, 0.6);
+            transition: transform 120ms ease, box-shadow 120ms ease, filter 120ms ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            filter: brightness(1.05);
+            box-shadow: 0 18px 40px rgba(37, 99, 235, 0.8);
+        }
+
+        .btn-secondary {
+            border-radius: var(--radius-pill);
+            padding: 7px 15px;
+            border: 1px solid rgba(148, 163, 184, 0.5);
+            background: rgba(15, 23, 42, 0.9);
+            color: var(--text-soft);
+            font-size: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: border-color 120ms ease, background 120ms ease, color 120ms ease;
+        }
+
+        .btn-secondary:hover {
+            border-color: rgba(148, 163, 184, 0.9);
+            background: rgba(15, 23, 42, 1);
+            color: var(--text);
+        }
+
+        .btn-key {
+            font-family: ui-monospace, Menlo, SFMono-Regular, Consolas, "Liberation Mono",
+                "Courier New", monospace;
+            font-size: 11px;
+            padding: 2px 7px;
+            border-radius: 6px;
+            border: 1px solid rgba(148, 163, 184, 0.6);
+            background: radial-gradient(circle at 0 0, #1f2937 0, #020617 100%);
+            color: var(--text-soft);
+        }
+
+        .hero-aside {
+            padding: 10px 12px 8px;
+            border-radius: 20px;
+            background: radial-gradient(circle at top left, #1e293b 0, #020617 55%, #000 100%);
+            border: 1px solid rgba(148, 163, 184, 0.45);
+            box-shadow: 0 16px 45px rgba(15, 23, 42, 0.85);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-aside::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(circle at 12% 0, rgba(56, 189, 248, 0.3) 0, transparent 55%),
+                radial-gradient(circle at 88% 20%, rgba(244, 114, 182, 0.26) 0, transparent 55%);
+            opacity: 0.75;
+            pointer-events: none;
+        }
+
+        .hero-aside-inner {
+            position: relative;
+        }
+
+        .timeline-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.16em;
+            color: var(--text-soft);
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .timeline-label span {
+            opacity: 0.86;
+        }
+
+        .timeline-bar {
+            height: 7px;
+            border-radius: 999px;
+            background: rgba(15, 23, 42, 1);
+            border: 1px solid rgba(148, 163, 184, 0.4);
+            padding: 1px;
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .timeline-fill {
+            height: 100%;
+            border-radius: 999px;
+            width: 80%;
+            background: linear-gradient(90deg, #22c55e, #a3e635, #facc15);
+            box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.2), 0 0 14px rgba(132, 204, 22, 0.7);
+            position: relative;
+        }
+
+        .timeline-pointer {
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translate(50%, -50%);
+            width: 9px;
+            height: 9px;
+            border-radius: 999px;
+            background: #0f172a;
+            border: 2px solid #facc15;
+            box-shadow: 0 0 12px rgba(250, 204, 21, 0.9);
+        }
+
+        .hero-aside-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+            margin-bottom: 10px;
+            margin-top: 4px;
+        }
+
+        .stat {
+            background: rgba(15, 23, 42, 0.88);
+            border-radius: 12px;
+            padding: 8px 9px 7px;
+            border: 1px solid rgba(148, 163, 184, 0.55);
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+        }
+
+        .stat-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--text-soft);
+        }
+
+        .stat-value {
+            font-size: 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: baseline;
+            gap: 4px;
+        }
+
+        .stat-tag {
+            font-size: 10px;
+            padding: 0 6px;
+            border-radius: 999px;
+            background: rgba(15, 23, 42, 1);
+            border: 1px solid rgba(148, 163, 184, 0.7);
+            color: var(--text-soft);
+        }
+
+        .hero-aside-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            margin-top: 6px;
+        }
+
+        .course-tag-row {
+            display: inline-flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            font-size: 10px;
+            color: var(--text-soft);
+        }
+
+        .course-tag {
+            padding: 3px 8px;
+            border-radius: 999px;
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid rgba(148, 163, 184, 0.5);
+        }
+
+        .hero-instructor {
+            font-size: 10px;
+            color: var(--text-soft);
+            text-align: right;
+        }
+
+        .hero-instructor strong {
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .badge-live {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 7px 3px 4px;
+            border-radius: 999px;
+            background: rgba(239, 68, 68, 0.16);
+            border: 1px solid rgba(248, 113, 113, 0.7);
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: #fecaca;
+        }
+
+        .badge-live-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 999px;
+            background: radial-gradient(circle, #f97373 0, #b91c1c 55%, #450a0a 100%);
+            box-shadow: 0 0 0 5px rgba(239, 68, 68, 0.4);
+        }
+
+        /* MAIN SECTION */
+
+        .main {
+            margin-top: 26px;
+            display: grid;
+            grid-template-columns: minmax(0, 2.1fr) minmax(0, 1.4fr);
+            gap: 18px;
+        }
+
+        @media (max-width: 960px) {
+            .main {
+                grid-template-columns: minmax(0, 1fr);
+            }
+        }
+
+        .card {
+            background: linear-gradient(145deg, #050814 0, #02040a 100%);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-soft);
+            box-shadow: 0 18px 45px rgba(0, 0, 0, 0.7);
+            padding: 18px 18px 16px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .card-title {
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: var(--accent-strong);
+        }
+
+        .card-subtitle {
+            font-size: 12px;
+            color: var(--text-soft);
+        }
+
+        .topic {
+            padding: 10px 10px 9px;
+            border-radius: var(--radius-md);
+            background: radial-gradient(circle at top left, #0f172a 0, #020617 70%);
+            border: 1px solid rgba(30, 64, 175, 0.9);
+            margin-bottom: 10px;
+        }
+
+        .topic-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 4px;
+        }
+
+        .topic-title {
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .topic-chip {
+            font-size: 10px;
+            padding: 2px 7px;
+            border-radius: 999px;
+            background: rgba(15, 23, 42, 1);
+            border: 1px solid rgba(96, 165, 250, 0.9);
+            color: #bfdbfe;
+        }
+
+        .topic-time {
+            font-size: 11px;
+            color: var(--text-soft);
+        }
+
+        .topic-body {
+            font-size: 12px;
+            color: var(--text-soft);
+        }
+
+        .topic-list {
+            list-style: none;
+            margin-top: 6px;
+            padding-left: 0;
+            display: grid;
+            gap: 3px;
+        }
+
+        .topic-list li {
+            position: relative;
+            padding-left: 14px;
+        }
+
+        .topic-list li::before {
+            content: "";
+            position: absolute;
+            top: 7px;
+            left: 4px;
+            width: 3px;
+            height: 3px;
+            border-radius: 999px;
+            background: rgba(148, 163, 184, 0.9);
+        }
+
+        .topic-list span {
+            color: #e5e7eb;
+        }
+
+        .subtle-tag {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--text-soft);
+            margin-top: 6px;
+        }
+
+        /* RIGHT SIDEBAR */
+
+        .pill-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 8px;
+            margin-bottom: 8px;
+        }
+
+        .pill {
+            font-size: 10px;
+            padding: 3px 9px;
+            border-radius: 999px;
+            background: var(--chip-bg);
+            border: 1px solid rgba(148, 163, 184, 0.5);
+            color: var(--text-soft);
+        }
+
+        .pill.highlight {
+            background: rgba(37, 99, 235, 0.22);
+            color: #dbeafe;
+            border-color: rgba(96, 165, 250, 0.9);
+        }
+
+        .mini-section {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed rgba(55, 65, 81, 0.8);
+        }
+
+        .mini-heading {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.16em;
+            color: var(--text-soft);
+            margin-bottom: 6px;
+        }
+
+        .mini-list {
+            list-style: none;
+            padding-left: 0;
+            font-size: 12px;
+            color: var(--text-soft);
+            display: grid;
+            gap: 3px;
+        }
+
+        .mini-list li span {
+            color: #e5e7eb;
+        }
+
+        .footer-note {
+            margin-top: 18px;
+            font-size: 11px;
+            color: var(--text-soft);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: space-between;
+            border-top: 1px solid rgba(31, 41, 55, 0.9);
+            padding-top: 10px;
+        }
+
+        .footer-note em {
+            color: #e5e7eb;
+            font-style: normal;
+        }
+
+        a {
+            color: var(--accent-strong);
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+    <main class="page">
+        <!-- HERO -->
+        <section class="hero">
+            <div class="hero-inner">
+                <div class="hero-main">
+                    <div class="eyebrow">
+                        <span class="eyebrow-dot"></span>
+                        <span>Next.js 16 • Full Production Blog Course</span>
+                    </div>
+
+                    <h1 class="hero-title">
+                        8‑Hour Deep Dive into <span>Next.js&nbsp;16</span>
+                    </h1>
+                    <p class="hero-subtitle">
+                        Build a fully production‑ready blog platform from scratch while mastering routing, data,
+                        real‑time features, performance, and deployment in the modern Next.js app router ecosystem.
+                    </p>
+
+                    <div class="hero-meta-row">
+                        <div class="hero-meta-item">
+                            <span class="pill-dot"></span>
+                            <span>Length: 8 hours</span>
+                        </div>
+                        <div class="hero-meta-item">
+                            <span>Level:</span>
+                            <span>Intermediate → Advanced</span>
+                        </div>
+                        <div class="hero-meta-item">
+                            <span>Stack:</span>
+                            <span>Next.js 16, Convex, Better Auth, shadcn/ui</span>
+                        </div>
+                    </div>
+
+                    <div class="hero-actions">
+                        <button class="btn-primary">
+                            <span>Start from 0:13 – Build the blog</span>
+                            <span>↗</span>
+                        </button>
+                        <button class="btn-secondary">
+                            <span>Jump to a topic</span>
+                            <span class="btn-key">⌘ + F</span>
+                        </button>
+                    </div>
+                </div>
+
+                <aside class="hero-aside">
+                    <div class="hero-aside-inner">
+                        <div class="timeline-label">
+                            <span>Course Progress</span>
+                            <span>0:00 → 08:00:00</span>
+                        </div>
+                        <div class="timeline-bar">
+                            <div class="timeline-fill">
+                                <div class="timeline-pointer"></div>
+                            </div>
+                        </div>
+
+                        <div class="hero-aside-grid">
+                            <div class="stat">
+                                <div class="stat-label">Primary project</div>
+                                <div class="stat-value">
+                                    Blog Platform
+                                    <span class="stat-tag">Production‑ready</span>
+                                </div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-label">Key focus</div>
+                                <div class="stat-value">
+                                    Next.js 16
+                                    <span class="stat-tag">App Router</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="hero-aside-footer">
+                            <div>
+                                <div class="course-tag-row">
+                                    <span class="course-tag">Routing &amp; Layouts</span>
+                                    <span class="course-tag">Authentication</span>
+                                    <span class="course-tag">Real‑time</span>
+                                    <span class="course-tag">Performance</span>
+                                </div>
+                            </div>
+                            <div class="hero-instructor">
+                                <div class="badge-live">
+                                    <span class="badge-live-dot"></span>
+                                    <span>Hands‑on build</span>
+                                </div>
+                                <div>Follow along and code in real time.</div>
+                            </div>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+        </section>
+
+        <!-- MAIN CONTENT -->
+        <section class="main">
+            <!-- LEFT: TOPICS -->
+            <article class="card">
+                <header class="card-header">
+                    <h2 class="card-title">Course roadmap</h2>
+                    <p class="card-subtitle">
+                        Each section is timestamped so you can jump directly into what you need.
+                    </p>
+                </header>
+
+                <!-- Project structure & routing -->
+                <section class="topic">
+                    <div class="topic-header">
+                        <div class="topic-title">
+                            Project structure &amp; routing
+                            <span class="topic-chip">0:31, 15:00, 18:32, 29:00</span>
+                        </div>
+                        <div class="topic-time">Start: 0:31</div>
+                    </div>
+                    <div class="topic-body">
+                        <p>
+                            Learn how a modern Next.js 16 project is organized, how route groups and nested layouts
+                            work, and how the app router shapes your application.
+                        </p>
+                        <ul class="topic-list">
+                            <li>
+                                <span>Directory conventions</span> and how the app router discovers routes.
+                            </li>
+                            <li>
+                                <span>Route groups</span> <em>(0:36, 58:00)</em> and <span>nested layouts</span>
+                                <em>(0:39, 15:00)</em> for shared UI.
+                            </li>
+                            <li>
+                                File‑based routing <em>(18:32)</em> with <span>dynamic routes</span> <em>(29:00)</em>.
+                            </li>
+                            <li>
+                                Difference between <span>pages and layouts</span> <em>(16:59, 20:50)</em> and when to
+                                use each.
+                            </li>
+                        </ul>
+                    </div>
+                </section>
+
+                <!-- Navigation -->
+                <section class="topic">
+                    <div class="topic-header">
+                        <div class="topic-title">
+                            Navigation &amp; UX with Link
+                            <span class="topic-chip">25:00, 26:16</span>
+                        </div>
+                        <div class="topic-time">Start: 25:00</div>
+                    </div>
+                    <div class="topic-body">
+                        <p>
+                            Build fast client‑side navigation with the Next.js <code>&lt;Link&gt;</code> component and
+                            understand why it outperforms plain <code>&lt;a&gt;</code> tags.
+                        </p>
+                    </div>
+                </section>
+
+                <!-- Auth & Backend -->
+                <section class="topic">
+                    <div class="topic-header">
+                        <div class="topic-title">
+                            Authentication &amp; backend setup
+                            <span class="topic-chip">0:42, 0:44, 2:56, 01:45:00+</span>
+                        </div>
+                        <div class="topic-time">Start: 0:42</div>
+                    </div>
+                    <div class="topic-body">
+                        <p>
+                            Wire up a real production backend using Better Auth and Convex, including public/private
+                            environments and redirects.
+                        </p>
+                        <ul class="topic-list">
+                            <li>
+                                <span>Custom authentication flow</span> with Better Auth <em>(0:44, 02:00:00)</em>.
+                            </li>
+                            <li>
+                                <span>Convex BaaS</span> for real‑time data, scalable file storage, and high‑performance
+                                search <em>(2:56, 01:45:00)</em>.
+                            </li>
+                            <li>
+                                Handling <span>public vs. private environments</span> <em>(01:51:00)</em>.
+                            </li>
+                            <li>
+                                Programmatic <span>redirects</span> and access control flows <em>(02:29:00)</em>.
+                            </li>
+                        </ul>
+                    </div>
+                </section>
+
+                <!-- Data & Components -->
+                <section class="topic">
+                    <div class="topic-header">
+                        <div class="topic-title">
+                            Data handling, server actions &amp; components
+                            <span class="topic-chip">0:52, 0:55, 1:18, 03:09:00+</span>
+                        </div>
+                        <div class="topic-time">Start: 0:52</div>
+                    </div>
+                    <div class="topic-body">
+                        <p>
+                            Learn how to move logic to the server while keeping the UI fast, predictable, and secure.
+                        </p>
+                        <ul class="topic-list">
+                            <li>
+                                <span>Server Actions</span> for mutations, form state, validation, and file uploads
+                                <em>(0:55, 03:09:00)</em>.
+                            </li>
+                            <li>
+                                <span>Server vs. Client Components</span> and when each makes sense <em>(1:18, 01:15:00,
+                                    03:47:00)</em>.
+                            </li>
+                            <li>
+                                Data fetching on the <span>client</span> <em>(03:45:00)</em> vs. the <span>server</span>
+                                <em>(04:17:00)</em>.
+                            </li>
+                            <li>
+                                <span>Route Handlers</span> as API endpoints inside the app router <em>(03:19:00)</em>.
+                            </li>
+                        </ul>
+                    </div>
+                </section>
+
+                <!-- Optimization -->
+                <section class="topic">
+                    <div class="topic-header">
+                        <div class="topic-title">
+                            Optimization, caching &amp; performance
+                            <span class="topic-chip">1:29, 1:35, 1:40, 1:50, 2:06</span>
+                        </div>
+                        <div class="topic-time">Start: 1:29</div>
+                    </div>
+                    <div class="topic-body">
+                        <p>
+                            Go beyond "it works" and learn how to make your app feel instant, even under real‑world
+                            load.
+                        </p>
+                        <ul class="topic-list">
+                            <li>
+                                <span>Image optimization</span> with the Next.js <code>Image</code> component to prevent
+                                layout shifts <em>(1:29, 04:00:00)</em>.
+                            </li>
+                            <li>
+                                Deep dive into <span>caching &amp; revalidation</span> strategies <em>(1:35,
+                                    05:06:00)</em>.
+                            </li>
+                            <li>
+                                <span>Time‑based</span> and <span>on‑demand revalidation</span> flows <em>(1:40,
+                                    05:20:00)</em>.
+                            </li>
+                            <li>
+                                Streaming UI with <span>React Suspense</span> to handle loading states <em>(1:50,
+                                    04:26:00)</em>.
+                            </li>
+                            <li>
+                                <span>Cache Components (PPR)</span> for better perceived performance <em>(2:06,
+                                    07:27:00)</em>.
+                            </li>
+                        </ul>
+                    </div>
+                </section>
+
+                <!-- Advanced features -->
+                <section class="topic">
+                    <div class="topic-header">
+                        <div class="topic-title">
+                            Advanced features &amp; real‑time UX
+                            <span class="topic-chip">2:14, 2:17, 2:28, 2:36+</span>
+                        </div>
+                        <div class="topic-time">Start: 2:14</div>
+                    </div>
+                    <div class="topic-body">
+                        <p>
+                            Turn your blog into a living product with real‑time collaboration, presence, and powerful
+                            search.
+                        </p>
+                        <ul class="topic-list">
+                            <li>
+                                <span>Real‑time comments section</span> <em>(2:17, 05:45:00)</em>.
+                            </li>
+                            <li>
+                                <span>Presence feature</span> to see active users on the page <em>(2:28, 06:50:00)</em>.
+                            </li>
+                            <li>
+                                Dynamic <span>SEO metadata</span> per article <em>(1:55, 06:25:00)</em>.
+                            </li>
+                            <li>
+                                <span>Global search bar</span> that hits the database and responds in milliseconds
+                                <em>(2:36, 07:56:00)</em>.
+                            </li>
+                            <li>
+                                Discussion of <span>Next.js Proxy</span> for security <em>(07:09:00)</em> and
+                                <span>multi‑layer authorization</span> <em>(07:17:00)</em>.
+                            </li>
+                        </ul>
+                    </div>
+                </section>
+
+                <!-- Deployment -->
+                <section class="topic">
+                    <div class="topic-header">
+                        <div class="topic-title">
+                            Deployment &amp; going live
+                            <span class="topic-chip">08:26:00</span>
+                        </div>
+                        <div class="topic-time">Start: 08:26:00</div>
+                    </div>
+                    <div class="topic-body">
+                        <p>
+                            Finish by deploying your Next.js 16 application so you can share your production blog with
+                            the world.
+                        </p>
+                    </div>
+                </section>
+            </article>
+
+            <!-- RIGHT: TOOLING & SETUP -->
+            <aside class="card">
+                <header class="card-header">
+                    <h2 class="card-title">Tooling &amp; setup</h2>
+                    <p class="card-subtitle">
+                        Get your environment aligned with the instructor for a smoother follow‑along experience.
+                    </p>
+                </header>
+
+                <p class="subtle-tag">Course starting point</p>
+                <p style="font-size: 12px; color: var(--text-soft); margin-bottom: 8px;">
+                    The course begins by initializing a fresh Next.js 16 project and wiring up tooling that you’ll use
+                    for the entire build.
+                </p>
+
+                <div class="mini-section">
+                    <h3 class="mini-heading">Package manager &amp; project bootstrap</h3>
+                    <ul class="mini-list">
+                        <li>
+                            <span>PNPM</span> is recommended as the package manager <em>(7:13)</em>.
+                        </li>
+                        <li>
+                            Next.js project initialization with <span>TypeScript</span> <em>(9:48)</em>.
+                        </li>
+                        <li>
+                            Configuring <span>ESLint</span> as part of the setup <em>(9:27)</em>.
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="mini-section">
+                    <h3 class="mini-heading">UI &amp; components</h3>
+                    <p style="font-size: 12px; color: var(--text-soft);">
+                        For styling and accessible UI primitives, the course introduces <span
+                            style="color:#e5e7eb;">shadcn/ui</span> <em>(44:00)</em>, and shows how to integrate it
+                        directly into your Next.js app.
+                    </p>
+                </div>
+
+                <div class="mini-section">
+                    <h3 class="mini-heading">What you will be comfortable with by the end</h3>
+                    <div class="pill-row">
+                        <span class="pill highlight">App router mental model</span>
+                        <span class="pill">Layouts &amp; route groups</span>
+                        <span class="pill">Auth &amp; access control</span>
+                        <span class="pill">Real‑time data flows</span>
+                        <span class="pill">Server Actions &amp; RSC</span>
+                        <span class="pill">Caching &amp; revalidation</span>
+                        <span class="pill">SEO &amp; metadata</span>
+                        <span class="pill">Production deployment</span>
+                    </div>
+                </div>
+
+                <div class="mini-section">
+                    <h3 class="mini-heading">Suggested way to watch</h3>
+                    <ul class="mini-list">
+                        <li>
+                            First pass: <span>watch at 1×</span> speed and build the blog from scratch starting at
+                            <em>0:13</em>.
+                        </li>
+                        <li>
+                            Second pass: <span>jump to topics</span> when you need a refresh on routing, data, or
+                            performance.
+                        </li>
+                        <li>
+                            Use this page as your <span>timestamp map</span> while working on your own projects.
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="footer-note">
+                    <span>
+                        Built for developers who want to <em>ship a serious Next.js 16 app</em>, not just a demo.
+                    </span>
+                    <span>
+                        Ready? Scroll back up and hit <em>“Start from 0:13 – Build the blog”</em>.
+                    </span>
+                </div>
+            </aside>
+        </section>
+    </main>
+</body>
+
+</html>

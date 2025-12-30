@@ -1,0 +1,72 @@
+"use client"
+
+import Link from "next/link"
+import {Button, buttonVariants} from "../ui/button"
+import {ModeToggle} from "./darkMode"
+import {useConvexAuth} from "convex/react"
+import {authClient} from "@/lib/auth-client"
+import {toast} from "sonner"
+import { useRouter } from 'next/navigation'
+import { useTransition } from 'react'
+import SearchInput from './SearchInput'
+
+export function Navbar() {
+	const [isPending,startTransition] = useTransition()
+	const { isAuthenticated, isLoading } = useConvexAuth()
+	const router = useRouter()
+	return (
+		<nav className="w-full py-5 flex items-center justify-between">
+			<div className="flex items-center gap-8 ">
+				<Link href={"/"}>
+					<h1 className="text-3xl font-bold">
+						Next<span className="text-blue-500">Pro</span>
+					</h1>{" "}
+				</Link>
+				<div className="flex items-center gap-2">
+					<Link href={"/"} className={buttonVariants({variant: "ghost"})}>
+						Home
+					</Link>
+					<Link href={"/blog"} className={buttonVariants({variant: "ghost"})}>
+						Blog
+					</Link>
+					<Link href={"/create"} className={buttonVariants({variant: "ghost"})}>
+						Create
+					</Link>
+				</div>
+			</div>
+			<div className="hidden md:block mr-2">
+				<SearchInput/>
+			</div>
+			{isLoading ?
+				null
+			: isAuthenticated ?
+				<Button
+					onClick={() =>
+						authClient.signOut({
+							fetchOptions: {
+								onSuccess: () => {
+									toast.success("logged out successfully")
+									router.push('/')
+								},
+								onError: (error) => {
+									toast.error(`shit...${error.error.message}`)
+								}
+							},
+						})
+					}
+				>
+					Logout
+				</Button>
+			:	<div className="flex items-center gap-2">
+					<Link href={"/auth/sign-up"} className={buttonVariants({variant: "outline"})}>
+						Sign-Up
+					</Link>
+					<Link href={"/auth/log-in"} className={buttonVariants({variant: "outline"})}>
+						Log-In
+					</Link>
+				</div>
+			}
+			<ModeToggle className={buttonVariants({variant: "outline"})} />
+		</nav>
+	)
+}
