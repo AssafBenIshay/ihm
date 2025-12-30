@@ -35,7 +35,7 @@ export default function BlogPage() {
 }
 
 async function LoadBlogList() {
-	// "use cache"
+	"use cache"
 	// cacheLife('hours')
 	// cacheTag('blog')
 
