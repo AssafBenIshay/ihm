@@ -35,9 +35,9 @@ export default function BlogPage() {
 }
 
 async function LoadBlogList() {
-	"use cache"
-	cacheLife('hours')
-	cacheTag('blog')
+	// "use cache"
+	// cacheLife('hours')
+	// cacheTag('blog')
 
 	const data = await fetchQuery(api.posts.getPosts)
 
