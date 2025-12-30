@@ -38,7 +38,7 @@ async function LoadBlogList() {
 	"use cache"
 	cacheLife('hours')
 	cacheTag('blog')
-	await new Promise((resolve) => setTimeout(resolve, 200))
+
 	const data = await fetchQuery(api.posts.getPosts)
 
 	return (
